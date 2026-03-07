@@ -33,13 +33,15 @@ Estimated time spent: 15 days
 
 - Bonus: Local Storage persistence 
   - Code: `src/context/SudokuContext.jsx`
-  - Details: Game state is saved and restored via `localStorage`, and cleared on reset/completion.
+  - Details: The Context initializes state with a lazy useReducer initializer that first attempts to load sudoku-project2-state from window.localStorage. On every state update, a useEffect serializes and saves the latest board/timer/game metadata, so refreshes do not lose progress. Validation checks are applied before accepting saved data to avoid loading corrupted/incompatible payloads. Local storage is explicitly cleared when the player resets the puzzle and when a puzzle is completed, matching the assignment rule that persistence should stop once a game ends. All localStorage access is centralized in Context (getSavedState, save effect, clearSavedState) rather than scattered across UI components.
 - Bonus: Backtracking-based generation with unique-solution checks (attempted)
   - Code: `src/utils/sudoku.js`
-  - Details: Board generation uses backtracking, and puzzle carving verifies unique solvability.
+  - Details: Puzzle generation is split into two phases: (1) generate a full valid solved board with recursive backtracking (fillBoard) and candidate search, then (2) remove values while preserving uniqueness (carvePuzzle). During carving, each candidate removal is tested with a solver-count routine (countSolutions) that stops early once more than one solution is found. A cell is only removed if the resulting puzzle still has exactly one solution. This produces valid easy/normal boards with clue ranges configured per mode (MODE_CONFIG) while enforcing uniqueness rather than only checking validity.
 - Bonus: Hint system 
   - Code: `src/components/GameControls.jsx`, `src/context/SudokuContext.jsx`, `src/components/SudokuCell.jsx`
-  - Details: Hint highlights a valid single-candidate cell when available.
+  - Details: A dedicated Hint button dispatches SHOW_HINT from the controls. In Context, the hint logic scans editable empty cells, computes legal candidates (getCandidates), and selects a cell only when it has exactly one valid value (single-candidate rule). When found, state is updated with both selectedCell and hintCell so the UI focuses and highlights that location without auto-filling it. SudokuCell applies a specific hint style (cell.hint) so users get guidance while still entering the value themselves.
+
+
 - Bonus: Early submission
   - Status: Yes
 
